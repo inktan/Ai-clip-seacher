@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup>
 import { ref, reactive, onBeforeMount, onMounted, onUpdated, computed, defineComponent, watch, onUnmounted } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
 import imageSrc from '@/assets/logo.svg';
@@ -33,7 +33,7 @@ const handleSubmit = () => {
     formData.append('imageWeight', calculatedWeight.value);
     formData.append('prompt_img', selectedFile.value);
     formData.append('n01', 0);
-    formData.append('n02', 200);
+    formData.append('n02', 500);
 
     emit('SubmitQuery', formData);
 }
@@ -59,6 +59,17 @@ function handleFileChange(event) {
 function handleReset() {
     window.location.reload();
 }
+const handleAIChat = () => {
+    console.log('msg')
+}
+import { ElMessage } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
+
+const handleCommand = (ct) => {
+  ElMessage(`click on item ${ct}`)
+  console.log(ct)
+
+}
 
 </script>
 
@@ -67,28 +78,19 @@ function handleReset() {
         <el-image style="width: 60px; height: 60px" :src="imageSrc" />
         <div>
             <el-button size="large" @click="handleReset">灵感</el-button>
-            <!-- <el-button size="large" @click="handleSubmit">AI工具</el-button> -->
-            <el-dropdown>
-                <span class="el-dropdown-link">
-                    Dropdown List
-                    <el-icon class="el-icon--right">
-                        <arrow-down />
-                    </el-icon>
-                </span>
+            <!-- <el-dropdown  split-button  @click="handleAIChat">
+                <el-button size="large">AI工具</el-button>
                 <template #dropdown>
                     <el-dropdown-menu>
-                        <el-dropdown-item>Action 1</el-dropdown-item>
-                        <el-dropdown-item>Action 2</el-dropdown-item>
-                        <el-dropdown-item>Action 3</el-dropdown-item>
-                        <el-dropdown-item disabled>Action 4</el-dropdown-item>
-                        <el-dropdown-item divided>Action 5</el-dropdown-item>
+                        <el-dropdown-item command="Ai对话">AI对话</el-dropdown-item>
+                        <el-dropdown-item command="Ai绘图">AI绘图</el-dropdown-item>
                     </el-dropdown-menu>
-                </template>
-            </el-dropdown>
+                </template> -->
+            <!-- </el-dropdown> -->
         </div>
         <div class="form">
             <el-form :inline="true" label-width="auto" @submit.prevent="handleSubmit">
-                <el-form-item label="输入提示词">
+                <el-form-item label="输入搜索关键词">
                     <el-input v-model="form.prompt" style="width: 450px" placeholder="Please input prompt" size="large"
                         :maxlength="100" show-word-limit>
                         <template #prefix>
@@ -137,6 +139,10 @@ function handleReset() {
     align-items: center;
     gap: 30px;
     margin: 0 20px;
+
+    .el-dropdown {
+        margin-left: 10px;
+    }
 
     .form {
         padding-top: 20px;

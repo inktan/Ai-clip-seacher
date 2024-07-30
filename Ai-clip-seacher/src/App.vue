@@ -9,12 +9,13 @@ import Header from '@/components/Header.vue'
 import Detail from '@/views/Detail.vue'
 import ProInfo from '@/components/ProInfo.vue'
 
+const headerLoading = ref(false)
 const randomPicWaterFlow = ref({
   loading: true,
   images: []
 })
 
-const prefix = 'http://10.1.12.30:8081/static_200/';
+const prefix = 'http://10.1.12.30:5173/static_200/';
 const fetcData = async function () {
   randomPicWaterFlow.value.loading = true;
   window.start();
@@ -68,13 +69,14 @@ onUnmounted(() => {
 async function handleSubmitQuery(query) {
   randomPicWaterFlow.value.images = []
   proInfoShow.value = false
-
+  headerLoading.value = true
   randomPicWaterFlow.value.loading = true;
   window.start();
   // window.done();
   const images = await postBestImagesPrompt(query);
   randomPicWaterFlow.value.images = images.map(item => prefix + item);
   randomPicWaterFlow.value.loading = false;
+  headerLoading.value = false
   // window.start();
   window.done();
 }
@@ -105,12 +107,14 @@ const SearchProInfo = async (message) => {
   proInfoPicWaterFlow.value.loading = true;
   // 远程获取项目文件夹
   const images = await getProjectContent(message.projectPath);
-  proInfoPicWaterFlow.value.images = randomPicWaterFlow.value.images.concat(images.map(item => prefix + item));
+  proInfoPicWaterFlow.value.images = images.map(item => prefix + item);
   proInfoPicWaterFlow.value.loading = false;
 };
 
 provide('SearchProInfo', SearchProInfo);
-
+const handleGoBack = () => {
+  proInfoShow.value = false;
+}
 </script>
 
 <template>
@@ -118,12 +122,13 @@ provide('SearchProInfo', SearchProInfo);
     <Layout>
       <template #header>
         <div class="header">
-          <Header @SubmitQuery="handleSubmitQuery" />
+          <Header @SubmitQuery="handleSubmitQuery" :loading="headerLoading" />
         </div>
       </template>
       <template #main>
         <div class="main">
-          <ProInfo v-if="proInfoShow" :url="proInfoUrl" :projectName="projectName" />
+          <ProInfo v-if="proInfoShow" :url="proInfoUrl" :projectName="projectName" @GoBack="handleGoBack" />
+          <el-divider />
           <Detail v-if="proInfoShow" :picWaterFlowInfo="proInfoPicWaterFlow" />
           <Detail v-if="!proInfoShow" :picWaterFlowInfo="randomPicWaterFlow" />
         </div>

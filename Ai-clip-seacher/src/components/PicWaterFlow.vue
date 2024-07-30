@@ -19,6 +19,10 @@ const deSetPositions = debounce(() => {
 
 onMounted(() => {
     window.addEventListener('resize', deSetPositions);
+    // 初始化 linkVisibility 对象，假设 images 的长度为 images.length
+    // props.images.forEach((_, index) => {
+    //     linkVisibility.value[index] = true;
+    // });
 })
 
 onUnmounted(() => {
@@ -29,14 +33,16 @@ function handleLoad(index) {
     setPostions(200, 20, 'PicWaterfallFlow');
 }
 
-function handleError(event) {
-    console.log('Image Error');
-}
-
+// const handleImageError = (index) => {
+    // 当图片加载失败时，设置对应索引的 linkVisibility 为 false
+    // linkVisibility.value[index] = false;
+    // setPostions(200, 20, 'PicWaterfallFlow');
+// };
 const activeIndex = ref(0); // 用于跟踪当前鼠标悬停的链接索引
+// const linkVisibility = ref({}); // 控制每个链接是否显示的对象
+
 function handleMouseOver(index) {
     activeIndex.value = index;
-    // console.log(activeIndex.value)
 }
 function handleMouseLeave(index) {
     activeIndex.value = null;
@@ -62,9 +68,10 @@ function handleClick(url) {
         <!-- <el-button @click="handleClick"></el-button> -->
         <div class="PicWaterfallFlow" id="PicWaterfallFlow" v-if="images.length > 0">
             <div v-for="(url, index)  in images" :key="url">
-                <el-link href="" target="" @mouseover="handleMouseOver(index)" @mouseleave="handleMouseLeave(index)"
-                    :class="{ 'with-overlay': activeIndex === index }" :underline="false" @click="handleClick(url)">
-                    <el-image :src="url" @load="handleLoad(index)" @error="handleError" lazy />
+                <el-link href="" target="" @mouseover="handleMouseOver(index)"
+                    @mouseleave="handleMouseLeave(index)" :class="{ 'with-overlay': activeIndex === index }"
+                    :underline="false" @click="handleClick(url)">
+                    <el-image :src="url" @load="handleLoad(index)" lazy />
                     <div class="overlay" v-if="activeIndex === index">
                         项目详情
                     </div>

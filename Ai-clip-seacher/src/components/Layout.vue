@@ -25,7 +25,7 @@
 
         border-top: 1px solid rgb(194, 194, 194);
         border-bottom: 1px solid rgb(194, 194, 194);
-        z-index: 1;
+        z-index: 2;
     }
 
     .topFill {
