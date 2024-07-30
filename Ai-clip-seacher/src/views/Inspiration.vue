@@ -25,8 +25,8 @@ const props = defineProps({
 
         <!-- 项目内容 -->
 
-        <PicWaterFlow :images="picWaterFlowInfo.images"/>
-        <div class="loading" v-loading="picWaterFlowInfo.loading" v-if="picWaterFlowInfo.loading"  element-loading-text="AI搜索中..."></div>
+        <PicWaterFlow :images="picWaterFlowInfo.images" @SearchProInfo=""/>
+        <div class="loading" v-loading="picWaterFlowInfo.loading" v-if="picWaterFlowInfo.loading"></div>
     </div>
 </template>
 

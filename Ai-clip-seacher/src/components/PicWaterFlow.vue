@@ -47,10 +47,13 @@ const SearchProInfo = inject('SearchProInfo');
 function handleClick(url) {
     const startIndex = url.lastIndexOf("/") + 1; // 找到最后一个'/'字符的索引，并加1以指向下一个字符
     const endIndex = url.lastIndexOf("\\"); // 找到最后一个'\'字符的索引
+    const parts = url.split('\\');
+    const projectName = parts[1];
+
     const projectPath = url.substring(startIndex, endIndex);
     const newUrl_1k = url.replace("static_200", "static_1");
 
-    SearchProInfo({ projectPath, newUrl_1k });
+    SearchProInfo({ projectName, projectPath, newUrl_1k });
 }
 
 </script>
@@ -58,15 +61,16 @@ function handleClick(url) {
     <div class="PicWaterfallFlow-container">
         <!-- <el-button @click="handleClick"></el-button> -->
         <div class="PicWaterfallFlow" id="PicWaterfallFlow" v-if="images.length > 0">
-            <el-link v-for="(url, index)  in images" :key="url" href="" target="" @mouseover="handleMouseOver(index)"
-                @mouseleave="handleMouseLeave(index)" :class="{ 'with-overlay': activeIndex === index }"
-                :underline="false" @click="handleClick(url)">
-                <el-image :src="url" @load="handleLoad(index)" @error="handleError" lazy>
-                </el-image>
-                <div class="overlay" v-if="activeIndex === index">
-                    项目详情
-                </div>
-            </el-link>
+            <div v-for="(url, index)  in images" :key="url">
+                <el-link href="" target="" @mouseover="handleMouseOver(index)" @mouseleave="handleMouseLeave(index)"
+                    :class="{ 'with-overlay': activeIndex === index }" :underline="false" @click="handleClick(url)">
+                    <el-image :src="url" @load="handleLoad(index)" @error="handleError" lazy />
+                    <div class="overlay" v-if="activeIndex === index">
+                        项目详情
+                    </div>
+                </el-link>
+                <!-- <div class="describle">特征</div> -->
+            </div>
 
             <!-- <img v-for="(url, index)  in images" :key="url" :src="url" @load="handleLoad(index)"
                 @error="handleError">
@@ -106,6 +110,12 @@ function handleClick(url) {
                     background-color: white;
                 }
             }
+        }
+
+        .describle {
+            text-align: center;
+            margin: 10px;
+            font-size: 12px;
         }
 
         .overlay {

@@ -28,3 +28,14 @@ export async function getProjectContent(projectPath) {
     });
 }
 
+// 语义解析图片
+// erroe axios 不支持流式传输
+export async function getAIReadImage(imgUrl) {
+    const url = 'http://10.1.12.30:5001/ai_image_description'
+    return await request.get(url, {
+        // get请求参数
+        params: {
+            img_url: imgUrl,
+        }
+    });
+}

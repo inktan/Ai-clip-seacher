@@ -7,6 +7,18 @@ import { createApp, h } from 'vue'
 // import { showMessage } from '@/utils';
 // import './mock'
 
+import "nprogress/nprogress.css";
+import { start, done, configure, trickle } from "nprogress";
+
+// 页面等待的时候，浏览器窗口上方会显示进度条
+configure({
+    trickleSpeed: 10, // 滚动条的速度
+    // showSpinner: false, // 低端是否显示小圈圈
+})
+
+window.start = start;
+window.done = done;
+
 import App from './App.vue'
 // import App from './App-RightList.vue'
 const app = createApp(App)
@@ -28,6 +40,5 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 // app.provide('$showMessage', showMessage);
 app.mount('#app');
-
 
 

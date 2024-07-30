@@ -15,7 +15,7 @@ const props = defineProps({
 const form = reactive({
     prompt: '',
     iamge: null,
-    imageWeight: 0,
+    imageWeight: 50,
     n: 100,
 })
 const calculatedWeight = computed(() => form.imageWeight / 100);
@@ -67,7 +67,24 @@ function handleReset() {
         <el-image style="width: 60px; height: 60px" :src="imageSrc" />
         <div>
             <el-button size="large" @click="handleReset">灵感</el-button>
-            <el-button size="large" @click="handleSubmit">AI工具</el-button>
+            <!-- <el-button size="large" @click="handleSubmit">AI工具</el-button> -->
+            <el-dropdown>
+                <span class="el-dropdown-link">
+                    Dropdown List
+                    <el-icon class="el-icon--right">
+                        <arrow-down />
+                    </el-icon>
+                </span>
+                <template #dropdown>
+                    <el-dropdown-menu>
+                        <el-dropdown-item>Action 1</el-dropdown-item>
+                        <el-dropdown-item>Action 2</el-dropdown-item>
+                        <el-dropdown-item>Action 3</el-dropdown-item>
+                        <el-dropdown-item disabled>Action 4</el-dropdown-item>
+                        <el-dropdown-item divided>Action 5</el-dropdown-item>
+                    </el-dropdown-menu>
+                </template>
+            </el-dropdown>
         </div>
         <div class="form">
             <el-form :inline="true" label-width="auto" @submit.prevent="handleSubmit">
