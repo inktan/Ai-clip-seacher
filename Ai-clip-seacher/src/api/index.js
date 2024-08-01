@@ -14,6 +14,7 @@ export async function getRandomImages(query_count) {
 // 语义搜索图片
 export async function postBestImagesPrompt(data01) {
     const url = 'http://10.1.12.30:5000/get_best_images_prompt'
+    // console.log(data01)
     return await request.post(url, data01);
 }
 

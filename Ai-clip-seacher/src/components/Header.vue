@@ -27,7 +27,7 @@ const fileInput = ref(null)
 // Ai搜索的信息
 const emit = defineEmits(['SubmitQuery']);
 const handleSubmit = () => {
-
+    console.log(`输入搜索关键词：${form.prompt}`)
     const formData = new FormData();
     formData.append('prompt', form.prompt);
     formData.append('imageWeight', calculatedWeight.value);
@@ -66,8 +66,8 @@ import { ElMessage } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
 
 const handleCommand = (ct) => {
-  ElMessage(`click on item ${ct}`)
-  console.log(ct)
+    ElMessage(`click on item ${ct}`)
+    console.log(ct)
 
 }
 
@@ -77,7 +77,7 @@ const handleCommand = (ct) => {
     <div class="header-container">
         <el-image style="width: 60px; height: 60px" :src="imageSrc" />
         <div>
-            <el-button size="large" @click="handleReset">灵感</el-button>
+            <el-button @click="handleReset">灵感</el-button>
             <!-- <el-dropdown  split-button  @click="handleAIChat">
                 <el-button size="large">AI工具</el-button>
                 <template #dropdown>

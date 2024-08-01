@@ -4,6 +4,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import { getRandomImages, postBestImagesPrompt, getProjectContent } from '@/api';
 import eventBus from '@/eventBus';
 
+import AIChat from '@/components/AIChat.vue'
 import Layout from '@/components/Layout.vue'
 import Header from '@/components/Header.vue'
 import Detail from '@/views/Detail.vue'
@@ -20,9 +21,9 @@ const fetcData = async function () {
   randomPicWaterFlow.value.loading = true;
   window.start();
   // window.done();
-  const images = await getRandomImages(100);
+  const data = await getRandomImages(100);
   // console.log(images);
-  randomPicWaterFlow.value.images = images.map(item => prefix + item);
+  randomPicWaterFlow.value.images = data.results.map(item => prefix + item);
   randomPicWaterFlow.value.loading = false;
   // window.start();
   window.done();
@@ -36,8 +37,8 @@ async function fetchMore() {
   randomPicWaterFlow.value.loading = true;
   window.start();
   // window.done();
-  const images = await getRandomImages(100);
-  randomPicWaterFlow.value.images = randomPicWaterFlow.value.images.concat(images.map(item => prefix + item));
+  const data = await getRandomImages(100);
+  randomPicWaterFlow.value.images = randomPicWaterFlow.value.images.concat(data.results.map(item => prefix + item));
   window.done();
 
   randomPicWaterFlow.value.loading = false;
@@ -73,11 +74,14 @@ async function handleSubmitQuery(query) {
   randomPicWaterFlow.value.loading = true;
   window.start();
   // window.done();
-  const images = await postBestImagesPrompt(query);
-  randomPicWaterFlow.value.images = images.map(item => prefix + item);
+  const data = await postBestImagesPrompt(query);
+  randomPicWaterFlow.value.images = data.results.map(item => prefix + item);
   randomPicWaterFlow.value.loading = false;
   headerLoading.value = false
   // window.start();
+
+  // 打印中英文对比信息
+  console.log(`输出搜索关键词：${data.prompt}`)
   window.done();
 }
 
@@ -106,8 +110,8 @@ const SearchProInfo = async (message) => {
   proInfoShow.value = true
   proInfoPicWaterFlow.value.loading = true;
   // 远程获取项目文件夹
-  const images = await getProjectContent(message.projectPath);
-  proInfoPicWaterFlow.value.images = images.map(item => prefix + item);
+  const data = await getProjectContent(message.projectPath);
+  proInfoPicWaterFlow.value.images = data.results.map(item => prefix + item);
   proInfoPicWaterFlow.value.loading = false;
 };
 
@@ -134,12 +138,14 @@ const handleGoBack = () => {
         </div>
       </template>
     </Layout>
+    <AIChat />
   </div>
 </template>
 
 <style lang="less" scoped>
 .container {
   // overflow: auto;
+  position: relative;
 
   .main {
     // height: 1000px;

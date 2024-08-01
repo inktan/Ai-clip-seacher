@@ -4,7 +4,7 @@ import axios from "axios"
 const ins = axios.create(); //  创建一个axios实例
 ins.interceptors.response.use(function (resp) {
     // console.log('拦截器');
-    return resp.data.results;
+    return resp.data;
     // if (resp.data.code === 0) {
     //     return resp.data.data;
     // }
