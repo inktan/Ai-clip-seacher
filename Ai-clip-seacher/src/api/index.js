@@ -12,10 +12,10 @@ export async function getRandomImages(query_count) {
 }
 
 // 语义搜索图片
-export async function postBestImagesPrompt(data01) {
+export async function postBestImagesPrompt(query) {
     const url = 'http://10.1.12.30:5000/get_best_images_prompt'
     // console.log(data01)
-    return await request.post(url, data01);
+    return await request.post(url, query);
 }
 
 // 项目详情
@@ -38,5 +38,27 @@ export async function getAIReadImage(imgUrl) {
         params: {
             img_url: imgUrl,
         }
+    });
+}
+
+// 请填写您自己的APIKey
+const ZhipuAI_api_key = "6afaa8e936bc8982b107416a390216e3.sSW4FmE17ZKIVldh"
+const url = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+
+// Ai对话
+// erroe axios 不支持流式传输
+export async function postZhiPuAiChat(messageList) {
+    const data = {
+        "model": "glm-4",
+        "messages": messageList,
+        stream: true,
+    }
+    return await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${ZhipuAI_api_key}`
+        },
+        body: JSON.stringify(data),
     });
 }

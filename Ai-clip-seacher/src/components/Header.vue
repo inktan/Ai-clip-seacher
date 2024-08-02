@@ -90,8 +90,8 @@ const handleCommand = (ct) => {
         </div>
         <div class="form">
             <el-form :inline="true" label-width="auto" @submit.prevent="handleSubmit">
-                <el-form-item label="输入搜索关键词">
-                    <el-input v-model="form.prompt" style="width: 450px" placeholder="Please input prompt" size="large"
+                <el-form-item label="">
+                    <el-input v-model="form.prompt" style="width: 450px" placeholder="输入搜索关键词……" size="large"
                         :maxlength="100" show-word-limit>
                         <template #prefix>
                             <el-icon class="el-input__icon">
@@ -146,6 +146,7 @@ const handleCommand = (ct) => {
 
     .form {
         padding-top: 20px;
+        
 
         .el-form-item {
             margin-right: 10px;

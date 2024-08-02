@@ -132,7 +132,7 @@ const handleGoBack = () => {
       <template #main>
         <div class="main">
           <ProInfo v-if="proInfoShow" :url="proInfoUrl" :projectName="projectName" @GoBack="handleGoBack" />
-          <el-divider />
+          <el-divider  v-if="proInfoShow" />
           <Detail v-if="proInfoShow" :picWaterFlowInfo="proInfoPicWaterFlow" />
           <Detail v-if="!proInfoShow" :picWaterFlowInfo="randomPicWaterFlow" />
         </div>

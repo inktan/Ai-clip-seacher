@@ -3,7 +3,6 @@ import { ref, reactive, onBeforeMount, onMounted, onUpdated, watchEffect, comput
 import { RouterLink, RouterView } from 'vue-router'
 import { getAIReadImage } from '@/api';
 import axios from "axios"
-import { Back } from '@element-plus/icons-vue'
 
 const props = defineProps({
     url: {
@@ -18,12 +17,23 @@ const aiText = ref('')
 const aiLoading = ref(false)
 
 const textDecoder = new TextDecoder();
-const fetchAiDescrible = async (url) => {
+const fetchAiDescrible = async (img_url) => {
     aiText.value = ''
     aiLoading.value = true
     window.start();
     // window.done();
-    const resp = await fetch(`http://10.1.12.30:5001/ai_image_description?img_url=${url}`)
+    const params = {
+        'img_url': img_url,
+    }
+    // 创建URLSearchParams实例并填充参数
+    const searchParams = new URLSearchParams();
+    for (const key in params) {
+        searchParams.append(key, params[key]);
+    }
+
+    const get_url = `http://10.1.12.30:5001/ai_image_description?${searchParams.toString()}`
+    console.log(get_url)
+    const resp = await fetch(get_url)
     const reader = resp.body.getReader();
     while (1) {
         aiLoading.value = false
@@ -46,10 +56,6 @@ watch(
         immediate: true // 立即执行回调
     }
 )
-
-
-
-
 const loading = ref(true)
 const handleLoad = function () {
     loading.value = false;
@@ -66,7 +72,10 @@ const goBack = () => {
 <template>
     <div class="proinfo-container" v-loading="loading">
         <div class="back-button">
-            <el-button type="info" :icon="Back" @click="goBack">
+            <el-button type="info" @click="goBack">
+                <el-icon>
+                    <Back />
+                </el-icon>
                 返回
             </el-button>
         </div>
@@ -76,10 +85,10 @@ const goBack = () => {
         <div class="box-right" v-loading="aiLoading" element-loading-text="AI解析中...">
             <div v-if="!aiLoading">
                 <h2>项目名称:</h2>
-                <p>{{ projectName }}</p>
+                <span>{{ projectName }}</span>
                 <el-divider />
                 <h2 class="aiH2">AI解说:</h2>
-                <p>{{ aiText }}</p>
+                <span> {{ aiText }} </span>
                 <el-divider />
             </div>
         </div>
@@ -108,7 +117,9 @@ const goBack = () => {
     }
 
     .box-left {
-        margin: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         width: 100%;
         text-align: center;
 
@@ -130,15 +141,26 @@ const goBack = () => {
         }
 
         .aiH2 {
-            margin-top: 20px;
+            margin-top: 0;
         }
 
-        p {
+        span {
+            display: block;
             margin-top: 10px;
             margin-right: 30px;
             text-indent: 2em;
             font-size: 15px;
-            line-height: 20px;
+            line-height: 22px;
+            word-wrap: break-word;
+            // background: linear-gradient(to right, #e9e9eb, #b1b3b8) no-repeat right bottom;
+            // background-size: 0 2px;
+            // transition: background-size 1s;
+        }
+
+        span:hover {
+            background-position: left bottom;
+            background-size: 100% 2px;
+
         }
     }
 }
