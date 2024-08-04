@@ -100,8 +100,11 @@ const readStream = async (
                 status === 200
                     ? json.choices[0].delta.content ?? ""
                     : json.error.message;
+
             if (content.startsWith("？")) content = content.slice(1);; // ignore sse comment message
             if (content.startsWith("?")) content = content.slice(1);; // ignore sse comment message
+            if (content.startsWith("。")) content = content.slice(1);; // ignore sse comment message
+            if (content.startsWith(".")) content = content.slice(1);; // ignore sse comment message
             appendLastMessageContent(content);
         }
     }
