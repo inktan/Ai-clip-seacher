@@ -28,3 +28,9 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# AI Large Model File
+*.bin
+
+# Invalid cache file
+__pycache__/
