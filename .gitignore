@@ -30,7 +30,9 @@ coverage
 *.tsbuildinfo
 
 # AI Large Model File
+**/clip-vit-base-patch32/
 *.bin
 
 # Invalid cache file
-__pycache__/
+**/__pycache__/
+*.pyc

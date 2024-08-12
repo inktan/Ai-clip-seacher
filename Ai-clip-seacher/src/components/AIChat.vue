@@ -157,8 +157,9 @@ function handleMouseLeave(index) {
             </div>
             <div class="input-btn-container">
                 <div class="input-btn">
-                    <el-input @keyup.enter="sendOrSave" type="textarea" resize="none" v-model="messageContent" placeholder="请输入……" size="large"
-                        :maxlength="200" show-word-limit :autosize="{ minRows: 2, maxRows: 4 }">
+                    <el-input @keyup.enter="sendOrSave" type="textarea" resize="none" v-model="messageContent"
+                        placeholder="请输入……" size="large" :maxlength="200" show-word-limit
+                        :autosize="{ minRows: 2, maxRows: 4 }">
                     </el-input>
                     <el-button class="btnSearch" type="primary" @click="sendOrSave()">发送</el-button>
                 </div>
