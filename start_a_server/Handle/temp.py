@@ -66,3 +66,19 @@
 # image_path = r'd:\Ai-clip-seacher\AiArchLib\goa_4\0CUE3xllwi\1_1523962207317947.bmp'  # 替换为你的图片路径
 # dark_black_pixels,dark_gray_pixel_ratio = count_dark_black_pixels(image_path)
 # print(f'深灰色像素占比: {dark_black_pixels}: {dark_gray_pixel_ratio:.2%}')
+# 第一个列表，决定了元素的排序顺序  
+order_list = [20, 12, 25, 69]  
+  
+# 创建一个从元素到索引的映射字典  
+order_dict = {val: idx for idx, val in enumerate(order_list)}  
+  
+# 需要排序的元组列表  
+tuples_list = [(20, 'qwe'), (25, 'asd'), (12, 'zxc'), (69, 'qaz')]  
+tuples_list = [(20, 'qwe'), (25, 'asd'), (69, 'qaz')]  
+  
+# 使用列表推导式和映射字典来排序  
+sorted_tuples = sorted(tuples_list, key=lambda x: order_dict[x[0]])  
+  
+# 输出排序后的元组列表  
+print(sorted_tuples)
+

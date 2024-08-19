@@ -23,8 +23,9 @@ import App from './App.vue'
 // import App from './App-RightList.vue'
 const app = createApp(App)
 
-import store from './store';
-app.use(store);
+import { createPinia} from 'pinia'
+const pinia = createPinia()
+app.use(pinia)
 
 import router from './router'
 app.use(router);

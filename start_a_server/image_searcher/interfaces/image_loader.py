@@ -3,7 +3,6 @@ import os
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None  # 这将移除像素数量的限制
 
-
 class ImageLoader:
     def __init__(self, image_dir_path: str, traverse=False, exclude_hidden_directories: bool = True):
         self.image_dir_path = image_dir_path

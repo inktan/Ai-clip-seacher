@@ -4,7 +4,6 @@ import os
 
 import torch
 
-
 class StoredEmbeddings:
     def __init__(self, save_path: str):
         self.save_path = save_path

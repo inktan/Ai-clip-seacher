@@ -3,7 +3,7 @@ import axios from "axios"
 
 // 获取灵感照片
 export async function getRandomImages(query_count) {
-    return await request.get(`http://10.1.12.30:5000/random_image`, {
+    return await request.get(`http://10.1.12.30:5001/random_image`, {
         // get请求参数
         params: {
             query_count,
@@ -13,14 +13,15 @@ export async function getRandomImages(query_count) {
 
 // 语义搜索图片
 export async function postBestImagesPrompt(query) {
-    const url = 'http://10.1.12.30:5000/get_best_images_prompt'
+    // console.log(query)
+    const url = 'http://10.1.12.30:5005/get_best_images_prompt'
     // console.log(data01)
     return await request.post(url, query);
 }
 
 // 项目详情
 export async function getProjectContent(projectPath) {
-    const url = 'http://10.1.12.30:5000/project_content'
+    const url = 'http://10.1.12.30:5004/project_content'
     return await request.get(url, {
         // get请求参数
         params: {
@@ -31,15 +32,22 @@ export async function getProjectContent(projectPath) {
 
 // 语义解析图片
 // erroe axios 不支持流式传输
-export async function getAIReadImage(imgUrl) {
-    const url = 'http://10.1.12.30:5001/ai_image_description'
-    return await request.get(url, {
-        // get请求参数
-        params: {
-            img_url: imgUrl,
-        }
-    });
+// export async function getAIReadImage(imgUrl) {
+//     const url = 'http://10.1.12.30:5001/ai_image_description'
+//     return await request.get(url, {
+//         // get请求参数
+//         params: {
+//             img_url: imgUrl,
+//         }
+//     });
+// }
+
+export async function getAIReadImage(searchParams) {
+    const get_url = `http://10.1.12.30:5003/ai_image_description?${searchParams}`
+    // console.log(get_url)
+    return await fetch(get_url)
 }
+
 
 // 请填写您自己的APIKey
 const ZhipuAI_api_key = "6afaa8e936bc8982b107416a390216e3.sSW4FmE17ZKIVldh"

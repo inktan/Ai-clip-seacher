@@ -31,9 +31,7 @@ const fetchAiDescrible = async (img_url) => {
         searchParams.append(key, params[key]);
     }
 
-    const get_url = `http://10.1.12.30:5001/ai_image_description?${searchParams.toString()}`
-    console.log(get_url)
-    const resp = await fetch(get_url)
+    const resp = await getAIReadImage(searchParams.toString())
     const reader = resp.body.getReader();
     while (1) {
         aiLoading.value = false
@@ -81,6 +79,7 @@ const goBack = () => {
         </div>
         <div class="box-left">
             <el-image :src="url" fit="contain" @load="handleLoad" />
+            <!-- 这里要能够有点击上传图片的功能 -->
         </div>
         <div class="box-right" v-loading="aiLoading" element-loading-text="AI解析中...">
             <div v-if="!aiLoading">

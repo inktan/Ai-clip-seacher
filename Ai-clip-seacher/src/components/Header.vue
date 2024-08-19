@@ -1,7 +1,9 @@
 <script setup>
-import { ref, reactive, onBeforeMount, onMounted, onUpdated, computed, defineComponent, watch, onUnmounted } from 'vue';
+import { ref, reactive, onBeforeMount, onMounted, onUpdated, computed, defineComponent, watch, onUnmounted, provide, inject } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router';
 import imageSrc from '@/assets/logo.svg';
+const router = useRouter();
 
 const props = defineProps({
     loading: {
@@ -23,11 +25,11 @@ const selectedFile = ref(null);
 
 const imageUrl = ref('')
 const fileInput = ref(null)
+const emit = defineEmits(['SubmitQuery', 'RandomImgs', 'TextImgAna']);
 
 // Ai搜索的信息
-const emit = defineEmits(['SubmitQuery']);
 const handleSubmit = () => {
-    console.log(`输入搜索关键词：${form.prompt}`)
+    // console.log(`输入搜索关键词：${form.prompt}`)
     const formData = new FormData();
     formData.append('prompt', form.prompt);
     formData.append('imageWeight', calculatedWeight.value);
@@ -35,6 +37,7 @@ const handleSubmit = () => {
     formData.append('n01', 0);
     formData.append('n02', 500);
 
+    router.push('/');
     emit('SubmitQuery', formData);
 }
 
@@ -52,23 +55,19 @@ function handleFileChange(event) {
         selectedFile.value = file;
         // 创建一个URL对象，用于在el-image中显示图片
         imageUrl.value = URL.createObjectURL(file);
-        console.log(imageUrl.value)
     }
 }
 
-function handleReset() {
-    window.location.reload();
+// 刷新灵感图片
+function handleRandomImgs() {
+    router.push('/');
+    emit('RandomImgs');
+    // window.location.reload();
 }
-const handleAIChat = () => {
-    console.log('msg')
-}
-import { ElMessage } from 'element-plus'
-import { ArrowDown } from '@element-plus/icons-vue'
 
-const handleCommand = (ct) => {
-    ElMessage(`click on item ${ct}`)
-    console.log(ct)
-
+// 图文解析页面
+function handleTextImgAna() {
+    router.push({ path: '/textImgAnaView'});
 }
 
 </script>
@@ -77,7 +76,8 @@ const handleCommand = (ct) => {
     <div class="header-container">
         <el-image style="width: 60px; height: 60px" :src="imageSrc" />
         <div>
-            <el-button @click="handleReset">灵感</el-button>
+            <el-button @click="handleRandomImgs">灵感</el-button>
+            <!-- <el-button @click="handleTextImgAna">图文解析 </el-button> -->
             <!-- <el-dropdown  split-button  @click="handleAIChat">
                 <el-button size="large">AI工具</el-button>
                 <template #dropdown>
@@ -146,7 +146,7 @@ const handleCommand = (ct) => {
 
     .form {
         padding-top: 20px;
-        
+
 
         .el-form-item {
             margin-right: 10px;

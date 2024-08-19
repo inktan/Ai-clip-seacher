@@ -4,6 +4,11 @@ import { RouterLink, RouterView } from 'vue-router'
 import setPostions from '@/utils/setPositions';
 import debounce from '@/utils/debounce';
 import { Picture as IconPicture } from '@element-plus/icons-vue'
+import { useRoute, useRouter } from 'vue-router';
+const router = useRouter();
+
+import {useGlobalStore} from '@/store/globalStore'
+const globalStore = useGlobalStore()
 
 const props = defineProps({
     images: {
@@ -34,9 +39,9 @@ function handleLoad(index) {
 }
 
 // const handleImageError = (index) => {
-    // 当图片加载失败时，设置对应索引的 linkVisibility 为 false
-    // linkVisibility.value[index] = false;
-    // setPostions(200, 20, 'PicWaterfallFlow');
+// 当图片加载失败时，设置对应索引的 linkVisibility 为 false
+// linkVisibility.value[index] = false;
+// setPostions(200, 20, 'PicWaterfallFlow');
 // };
 const activeIndex = ref(0); // 用于跟踪当前鼠标悬停的链接索引
 // const linkVisibility = ref({}); // 控制每个链接是否显示的对象
@@ -49,8 +54,9 @@ function handleMouseLeave(index) {
 }
 
 // 项目详情
-const SearchProInfo = inject('SearchProInfo');
+// const SearchProInfo = inject('SearchProInfo');
 function handleClick(url) {
+
     const startIndex = url.lastIndexOf("/") + 1; // 找到最后一个'/'字符的索引，并加1以指向下一个字符
     const endIndex = url.lastIndexOf("\\"); // 找到最后一个'\'字符的索引
     const parts = url.split('\\');
@@ -59,7 +65,16 @@ function handleClick(url) {
     const projectPath = url.substring(startIndex, endIndex);
     const newUrl_1k = url.replace("static_200", "static_1");
 
-    SearchProInfo({ projectName, projectPath, newUrl_1k });
+    // console.log(url)
+    globalStore.fecthMore = false
+    router.push({
+        path: '/proInfoView',
+        query: {
+            projectName,
+            projectPath,
+            newUrl_1k,
+        }
+    });
 }
 
 </script>
@@ -68,9 +83,8 @@ function handleClick(url) {
         <!-- <el-button @click="handleClick"></el-button> -->
         <div class="PicWaterfallFlow" id="PicWaterfallFlow" v-if="images.length > 0">
             <div v-for="(url, index)  in images" :key="url">
-                <el-link href="" target="" @mouseover="handleMouseOver(index)"
-                    @mouseleave="handleMouseLeave(index)" :class="{ 'with-overlay': activeIndex === index }"
-                    :underline="false" @click="handleClick(url)">
+                <el-link href="" target="" @mouseover="handleMouseOver(index)" @mouseleave="handleMouseLeave(index)"
+                    :class="{ 'with-overlay': activeIndex === index }" :underline="false" @click="handleClick(url)">
                     <el-image :src="url" @load="handleLoad(index)" lazy />
                     <div class="overlay" v-if="activeIndex === index">
                         项目详情

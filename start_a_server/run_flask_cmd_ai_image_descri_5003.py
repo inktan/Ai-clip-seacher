@@ -1,10 +1,13 @@
-import os,io,json,requests,time,base64,logging
 from flask import Flask, Response,request, jsonify
+from PIL import Image
+import requests,base64
 from flask_cors import CORS
 from gevent import pywsgi  
 from PIL import Image
-from functools import wraps
 from io import BytesIO
+import logging
+import time 
+from flask import g
 
 from zhipuai import ZhipuAI
 
@@ -52,49 +55,43 @@ def zhipuai_read_image(base64_image_data,is_stream=False):
         # print(answer)
         return answer
 
-def zhipuai_chat(messageList, is_stream=False):
-    response = client.chat.completions.create(
-        model="glm-4",  # 填写需要调用的模型名称
-        # model="glm-4v",  # 填写需要调用的模型名称
-        messages = messageList,
-        stream = is_stream,
-        )
-    if is_stream:
-        for chunk in response:
-            print(chunk.choices[0].delta.content)
-            yield chunk.choices[0].delta.content
-    else:
-        answer = response.choices[0].message.content
-        # print(answer)
-        return answer
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler('run_flask_cmd_ai_image_descri_5003.log'),  # 日志文件名
+        logging.StreamHandler()  # 控制台输出
+    ]
+)
 
-def timer_decorator(func):
-    """装饰器，用于计算函数运行的时间"""
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-        result = func(*args, **kwargs)
-        end_time = time.time()
-        print(f"函数 {func.__name__} 运行耗时: {end_time - start_time:.4f} 秒")
-        return result
-    return wrapper
+logger = logging.getLogger(__name__)
 
-class RunFlaskCommand:
-    @timer_decorator
-    def ai_chat(self):
-        try:
-            messageList = request.json
-            return Response(zhipuai_chat(messageList, True), mimetype='text/event-stream')
-        except Exception as e:
-            print(e)
-            result = [str(e)]
-            return jsonify(results=result)
+app = Flask(__name__)
+CORS(app)
+
+@app.before_request
+def start_timer():
+    g.start = time.time()
+
+@app.after_request
+def log_request(response):
+    if request.path.startswith('/ai_image_description'):
+        elapsed_time = time.time() - g.start
+        logger.info(f'{request.remote_addr} - - [{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}] '
+                    f'"{request.method} {request.path} {request.environ.get("SERVER_PROTOCOL")}" '
+                    f'{response.status_code} {response.content_length} 请求耗时 {elapsed_time:.6f} s')
+    return response
+
+def run():
+    print("Waiting for server to start ...")
     
-    @timer_decorator
-    def ai_image_description(self):
+    @app.route('/ai_image_description',methods=['GET'])
+    def ai_image_description():
         img_url = request.args.get('img_url')
         try:
-            logging.info(f"User proinfo_img: { img_url}")
+            print(f"User proinfo_img: { img_url}")
             response = requests.get(img_url)
             response.raise_for_status() # 如果请求失败，将抛出HTTPError异常
 
@@ -116,27 +113,15 @@ class RunFlaskCommand:
             result = [str(e)]
             return jsonify(results=result)
 
-    @timer_decorator
-    def run(self, start=True):
-        logging.info("Waiting for server to start ...")
+    server = pywsgi.WSGIServer(('0.0.0.0', 5003), app)
+    print("Searcher Serving on port 10.1.12.30:5003 ...")
 
-        app = Flask(__name__, static_folder=None)
-        CORS(app)
-
-        app.add_url_rule("/ai_chat", "ai_chat", self.ai_chat, methods=["POST"])
-        app.add_url_rule("/ai_image_description", "ai_image_description", self.ai_image_description, methods=["GET"])
-        if start:
-            server = pywsgi.WSGIServer(('0.0.0.0', 5001), app)
-            print("Searcher Serving on port http://10.1.12.30:5001 ...")
-            server.serve_forever()
-
-        return app
-
-def run(**kwargs):
-    command = RunFlaskCommand(**kwargs)
-    command.run()
+    server.serve_forever()
 
 if __name__ == "__main__":
     run()
+
+
+
 
 

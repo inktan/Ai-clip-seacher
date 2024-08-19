@@ -1,24 +1,19 @@
-import * as userApi from "@/api";
-export default {
-    namespaced: true,
-    state: {
+import {defineStore} from "pinia";
+export const useGlobalStore = defineStore ('globalStore',{
+    state: ()=>({
         loading: false,
-        user: null,
-    },
-    mutations: {
-        setLoading(state, payload) {
-            state.loading = payload;
-        },
-        setUser(state, payload) {
-            state.user = payload;
-        }
-    },
+        // random_images:[],
+        images:[], // 首页瀑布流显示的图片
+        data: [],
+        fecthMore: false,
+    }),
+      
     actions: {
         // 定义动作
         // increment(context) {
         //     context.commit('increment');
         // }
-        async login(ctx, payload) {
+        async fetchBanner(ctx) {
             ctx.commit("setLoading", true);
             const resp = await userApi.login(payload.loginId, payload.loginPwd);
             // console.log(resp)
@@ -39,19 +34,4 @@ export default {
             ctx.commit("setLoading", null);
         }
     },
-    getters: {
-        // 定义获取器
-        // doubleCount(state) {
-        //     return state.count * 2;
-        // }
-        status(state) {
-            if (state.loading) {
-                return 'loading';
-            } else if (state.user) {
-                return "login";
-            } else {
-                return 'unlogin';
-            }
-        }
-    }
-}
+})
