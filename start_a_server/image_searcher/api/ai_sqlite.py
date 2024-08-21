@@ -19,10 +19,25 @@ def timer_decorator(func):
         return result
     return wrapper
 
-
 def serialize_f32(vector: List[float]) -> bytes:
-    """serializes a list of floats into a compact "raw bytes" format"""
-    return struct.pack("%sf" % len(vector), *vector)
+    """Serializes a list of floats into a compact "raw bytes" format with length."""
+    serialized_data = struct.pack("%sf" % len(vector), *vector)
+    length_prefix = struct.pack("I", len(vector))  # 'I' 表示无符号整数
+    return length_prefix + serialized_data
+
+def deserialize_f32(data: bytes) -> List[float]:
+    """Deserializes a list of floats from a compact "raw bytes" format with length."""
+    length_prefix_size = struct.calcsize("I")
+    n = struct.unpack("I", data[:length_prefix_size])[0]
+    return list(struct.unpack("%sf" % n, data[length_prefix_size:]))
+
+# def serialize_f32(vector: List[float]) -> bytes:
+#     """serializes a list of floats into a compact "raw bytes" format"""
+#     return struct.pack("%sf" % len(vector), *vector)
+
+# def deserialize_f32(data: bytes, n: int) -> List[float]:
+#     """Deserializes a list of floats from a compact "raw bytes" format."""
+#     return list(struct.unpack("%sf" % n, data))
 
 def check_table_exists(db,table_name):
     # 检查表是否存在的SQL语句
@@ -41,15 +56,15 @@ def del_table(db,table_name):
         db.execute(f"DROP TABLE {table_name};")
         print(f"Table '{table_name}' was deleted.")
 
-def get_embeddings():
+# def get_embeddings():
     # 读取pickle数据库
-    with open(stored_embeddings_path, "rb") as file:
-        stored_embeddings = pickle.load(file)
+    # with open(stored_embeddings_path, "rb") as file:
+    #     stored_embeddings = pickle.load(file)
 
-        embedding_tensors = torch.cat(tuple(x["image_embedding"] for x in stored_embeddings.values()), dim=0)
-        embedding_paths = list(stored_embeddings.keys())
+    #     embedding_tensors = torch.cat(tuple(x["image_embedding"] for x in stored_embeddings.values()), dim=0)
+    #     embedding_paths = list(stored_embeddings.keys())
 
-        return embedding_paths, embedding_tensors
+    #     return embedding_paths, embedding_tensors
     
 @timer_decorator
 def handle_db():
@@ -74,11 +89,12 @@ def handle_db():
     if(not check_table_exists(db,table_name_data_normal)):
         db.execute(f'''CREATE TABLE {table_name_data_normal}
             (ID INT PRIMARY KEY     NOT NULL,
-             PATH           TEXT    NOT NULL);''')
+             PATH           TEXT    NOT NULL,
+             Embedding      TEXT    NOT NULL);''')
     db.commit()
 
     # 向量表
-    del_table(db,table_name_vec)
+    # del_table(db,table_name_vec)
     # if(not check_table_exists(db,table_name_vec)):
     #     db.execute(f"CREATE VIRTUAL TABLE {table_name_vec} USING vec0(embedding float[{embedding_length}])")
     # db.commit()
@@ -116,14 +132,14 @@ def get_best_images(db):
 
 def create_vec_db():
     db = handle_db()
-    embedding_paths, embedding_tensors = get_embeddings()
+    # embedding_paths, embedding_tensors = get_embeddings()
 
-    for index, item in tqdm(enumerate(embedding_paths), total=len(embedding_paths)):
-        embedding_path = item
+    # for index, item in tqdm(enumerate(embedding_paths), total=len(embedding_paths)):
+    #     embedding_path = item
         # embedding_tensor = embedding_tensors[index]
 
-        db.execute(f'''INSERT INTO {table_name_data_normal} (ID,PATH)
-                    VALUES (?, ?)''', (index, embedding_path))
+        # db.execute(f'''INSERT INTO {table_name_data_normal} (ID,PATH)
+        #             VALUES (?, ?)''', (index, embedding_path))
 
         # db.execute(f"INSERT INTO {table_name_vec} (rowid, embedding) VALUES (?, ?)",
         #         [index, serialize_f32(embedding_tensor.numpy().tolist())])
@@ -138,16 +154,17 @@ def create_vec_db():
         #     continue
 
     db.commit()
+    db.close()
     return db
     
 if __name__ == '__main__':
     
-    stored_embeddings_path = r'y:\GOA-AIGC\98-goaTrainingData\ArchOctopus_thumbnail_200px\stored_embeddings.pickle'
-    db_path = r'D:\Ai-clip-seacher\sqlite\stored_paths_202408151104.db'
-    table_name_data_normal = 'data_normal'
+    # stored_embeddings_path = r'y:\GOA-AIGC\98-goaTrainingData\ArchOctopus_thumbnail_200px\stored_embeddings.pickle'
+    db_path = r'D:\18-Goa\ai-clip\cn-clip-embedding.db'
+    table_name_data_normal = 'en_clip_data_normal'
 
-    table_name_vec = 'vec_table'
-    embedding_length = 512
+    # table_name_vec = 'vec_table'
+    # embedding_length = 512
 
     db = create_vec_db()
 
@@ -157,3 +174,9 @@ if __name__ == '__main__':
     # db.enable_load_extension(False)
 
     # get_best_images(db)
+
+    
+    
+    
+    
+    

@@ -15,7 +15,7 @@ export async function getRandomImages(query_count) {
 export async function postBestImagesPrompt(query) {
     // console.log(query)
     const url = 'http://10.1.12.30:5005/get_best_images_prompt'
-    // console.log(data01)
+        // console.log(data01)
     return await request.post(url, query);
 }
 
@@ -44,13 +44,13 @@ export async function getProjectContent(projectPath) {
 
 export async function getAIReadImage(searchParams) {
     const get_url = `http://10.1.12.30:5003/ai_image_description?${searchParams}`
-    // console.log(get_url)
+        // console.log(get_url)
     return await fetch(get_url)
 }
 
 
 // 请填写您自己的APIKey
-const ZhipuAI_api_key = "6afaa8e936bc8982b107416a390216e3.sSW4FmE17ZKIVldh"
+const ZhipuAI_api_key = "6afaa8e936bc8982b107416a390216e3.sSW4FmE17ZKIVldh" //到期时间：2024-08-29
 const url = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 
 // Ai对话

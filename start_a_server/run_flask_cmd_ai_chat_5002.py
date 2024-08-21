@@ -7,7 +7,7 @@ from zhipuai import ZhipuAI
 
 app = Flask(__name__)
 CORS(app)
-client = ZhipuAI(api_key="6afaa8e936bc8982b107416a390216e3.sSW4FmE17ZKIVldh") # 请填写您自己的APIKey
+client = ZhipuAI(api_key="6afaa8e936bc8982b107416a390216e3.sSW4FmE17ZKIVldh") # 到期时间：2024-08-29
 
 def zhipuai_chat(messageList, is_stream=False):
     response = client.chat.completions.create(

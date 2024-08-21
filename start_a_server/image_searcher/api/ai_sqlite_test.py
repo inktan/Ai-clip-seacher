@@ -27,7 +27,6 @@ def del_table(db,table_name):
         db.execute(f"DROP TABLE {table_name};")
         print(f"Table '{table_name}' was deleted.")
 
-
 def handle_db():
     # db = sqlite3.connect(":memory:")
     db = sqlite3.connect(db_path)

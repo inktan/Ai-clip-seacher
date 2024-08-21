@@ -11,7 +11,7 @@ from flask import g
 
 from zhipuai import ZhipuAI
 
-client = ZhipuAI(api_key="6afaa8e936bc8982b107416a390216e3.sSW4FmE17ZKIVldh") # 请填写您自己的APIKey
+client = ZhipuAI(api_key="6afaa8e936bc8982b107416a390216e3.sSW4FmE17ZKIVldh") # 到期时间：2024-08-29
 
 def zhipuai_read_image(base64_image_data,is_stream=False):
     # image_bytes = BytesIO()
