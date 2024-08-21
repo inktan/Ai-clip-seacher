@@ -11,7 +11,16 @@ from flask import g
 
 from zhipuai import ZhipuAI
 
-client = ZhipuAI(api_key="60b3f51cd89d599b2b3a57ba2ebd7de4.118G7CuryjQ0UNUL") # 到期时间：2024-08-29
+import configparser
+config_file_path = 'config.ini'
+config = configparser.ConfigParser()
+config.read(config_file_path)
+api_credentials = {
+    'api_key': config.get('ZhipuAI_api_credentials', 'api_key'),
+    'expiration_date': config.get('ZhipuAI_api_credentials', 'expiration_date')
+}
+
+client = ZhipuAI(api_key=api_credentials['api_key'])
 
 def zhipuai_read_image(base64_image_data,is_stream=False):
     # image_bytes = BytesIO()

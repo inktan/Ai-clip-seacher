@@ -88,7 +88,7 @@ class Search:
 
         self.table_name_vec = 'vec_table_COSINE'
         # self.client.release_collection(collection_name="vec_table_IP")
-        self.client.load_collection(collection_name=self.table_name_vec) 
+        self.client.load_collection(collection_name=self.table_name_vec)
         
         print("Setup over, Searcher is ready to be queried")
 

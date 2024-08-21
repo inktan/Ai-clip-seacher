@@ -52,12 +52,10 @@ const sendChatMessage = async (content: string = messageContent.value) => {
         clearMessageContent();
         messageList.value.push({ role: "assistant", content: "" }); // 客户端
 
-        const { body, status } = await postZhiPuAiChat(messageList.value);
+        const resp = await postZhiPuAiChat(messageList.value)
+        const reader = resp.body.getReader();
+        await readStream(reader);
 
-        if (body) {
-            const reader = body.getReader();
-            await readStream(reader, status);
-        }
     } catch (error: any) {
         appendLastMessageContent(error);
     } finally {
@@ -70,8 +68,9 @@ const appendLastMessageContent = (content: string) =>
 
 const readStream = async (
     reader: ReadableStreamDefaultReader<Uint8Array>,
-    status: number
+    // status: number
 ) => {
+
     let partialLine = "";
 
     while (true) {
@@ -81,30 +80,34 @@ const readStream = async (
 
         const decodedText = decoder.decode(value, { stream: true });
 
-        if (status !== 200) {
-            const json = JSON.parse(decodedText); // start with "data: "
-            const content = json.error.message ?? decodedText;
-            appendLastMessageContent(content);
-            return;
-        }
+        // if (status !== 200) {
+        //     const json = JSON.parse(decodedText); // start with "data: "
+        //     const content = json.error.message ?? decodedText;
+        //     appendLastMessageContent(content);
+        //     return;
+        // }
+
         const chunk = partialLine + decodedText;
         const newLines = chunk.split(/\r?\n/);
-        partialLine = newLines.pop() ?? "";
+        // partialLine = newLines.pop() ?? "";
         for (const line of newLines) {
             if (line.length === 0) continue; // ignore empty message
             if (line.startsWith(":")) continue; // ignore sse comment message
             if (line === "data: [DONE]") return; //
 
-            const json = JSON.parse(line.substring(6)); // start with "data: "
-            let content =
-                status === 200
-                    ? json.choices[0].delta.content ?? ""
-                    : json.error.message;
+            // const json = JSON.parse(line.substring(6)); // start with "data: "
+            // let content =
+            //     status === 200
+            //         ? json.choices[0].delta.content ?? ""
+            //         : json.error.message;
+            let content = line
 
             if (content.startsWith("？")) content = content.slice(1);; // ignore sse comment message
             if (content.startsWith("?")) content = content.slice(1);; // ignore sse comment message
             if (content.startsWith("。")) content = content.slice(1);; // ignore sse comment message
             if (content.startsWith(".")) content = content.slice(1);; // ignore sse comment message
+            if (content.startsWith(":")) content = content.slice(1);; // ignore sse comment message
+            if (content.startsWith("：")) content = content.slice(1);; // ignore sse comment message
             appendLastMessageContent(content);
         }
     }
@@ -147,7 +150,7 @@ function handleMouseLeave(index) {
                     :class="{ 'with-overlay': activeIndex === index }">
                     <div class="ai-role">
                         <div class="role">{{ roleAlias[item.role] }}：</div>
-                        <Copy v-if="activeIndex === index" class="role-copy" :content="item.content" /> 
+                        <Copy v-if="activeIndex === index" class="role-copy" :content="item.content" />
                     </div>
                     <div class="ai-content">
                         <div class="content" v-if="item.content" v-html="item.content"></div>
