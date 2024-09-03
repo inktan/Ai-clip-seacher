@@ -1,5 +1,4 @@
 from flask import Flask, Response,request, jsonify
-from decorator import timer_decorator
 from flask_cors import CORS
 from gevent import pywsgi  
 import logging
@@ -29,7 +28,7 @@ def start_timer():
 
 @app.after_request
 def log_request(response):
-    if request.path.startswith('/ai_image_description'):
+    if request.path.startswith('/ai_chat'):
         elapsed_time = time.time() - g.start
         logger.info(f'{request.remote_addr} - - [{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}] '
                     f'"{request.method} {request.path} {request.environ.get("SERVER_PROTOCOL")}" '
@@ -69,7 +68,6 @@ def run():
 
     # 暂时web前端使用fetch进行ai对话
     @app.route('/ai_chat',methods=['POST'])
-    @timer_decorator
     def ai_chat():
         try:
             messageList = request.json
