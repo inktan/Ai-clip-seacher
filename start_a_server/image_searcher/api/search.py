@@ -8,7 +8,7 @@ from image_searcher.interfaces.result_interface import RankedImage
 from image_searcher.interfaces.stored_embeddings import StoredEmbeddings
 from image_searcher.embedders.clip_embedder import ClipEmbedder
 
-from pymilvus import MilvusClient, Collection, DataType
+# from pymilvus import MilvusClient, Collection, DataType
 from tqdm import tqdm
 
 # image_dir_path='Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus\archcollege'
@@ -21,7 +21,7 @@ from tqdm import tqdm
 # traverse=True # true为迭代文件夹中的嵌套子文件夹
 # include_faces=False
 # reindex=False # false不判断图片库是否有更新，true判断保存的语义数据库与当前图片库是否一致，不一致则重新建立索引
-db_path = r'd:\Ai-clip-seacher\sqlite\stored_paths.db'
+# db_path = r'd:\Ai-clip-seacher\sqlite\stored_paths.db'
 
 class Search:
     def __init__(self,
@@ -46,8 +46,8 @@ class Search:
         self.stored_embeddings = StoredEmbeddings(save_path=save_path if save_path else image_dir_path)
         print(f"{len(self.stored_embeddings.get_image_paths())} files are indexed.")
 
-        # self.image_path_prefix = r"Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus\\"
-        self.image_path_prefix = r"D:\Ai-clip-seacher\AiArchLib1k"
+        self.image_path_prefix = r"Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus\\"
+        # self.image_path_prefix = r"D:\Ai-clip-seacher\AiArchLib1k"
         # self.image_path_prefix = ""
         print("Waiting for server to start ...")
         if reindex:
@@ -70,25 +70,25 @@ class Search:
         # print(f"sqlite_version={sqlite_version}, vec_version={vec_version}")
 
         # sqlite3
-        self.db = sqlite3.connect(db_path)
+        # self.db = sqlite3.connect(db_path)
 
-        self.table_name_data_normal = 'data_normal'
-        self.count = self.db.execute(f'SELECT COUNT(PATH) FROM {self.table_name_data_normal} WHERE path IS NOT NULL').fetchone()[0]
+        # self.table_name_data_normal = 'data_normal'
+        # self.count = self.db.execute(f'SELECT COUNT(PATH) FROM {self.table_name_data_normal} WHERE path IS NOT NULL').fetchone()[0]
 
-        self.client = MilvusClient(
-            uri="http://localhost:19530",
-            db_name="default"
-        )
+        # self.client = MilvusClient(
+        #     uri="http://localhost:19530",
+        #     db_name="default"
+        # )
 
-        print('client.list_collections',self.client.list_collections())
+        # print('client.list_collections',self.client.list_collections())
 
         # vec_table_COSINE
         # vec_table_IP
         # vec_table
 
-        self.table_name_vec = 'vec_table_COSINE'
+        # self.table_name_vec = 'vec_table_COSINE'
         # self.client.release_collection(collection_name="vec_table_IP")
-        self.client.load_collection(collection_name=self.table_name_vec)
+        # self.client.load_collection(collection_name=self.table_name_vec)
         
         print("Setup over, Searcher is ready to be queried")
 

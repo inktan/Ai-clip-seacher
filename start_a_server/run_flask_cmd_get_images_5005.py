@@ -40,7 +40,7 @@ def log_request(response):
     return response
 
 def run():
-    searcher = Search(image_dir_path = '',
+    searcher = Search(image_dir_path = r'Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus_thumbnail_200px',
                 traverse= False,
                 save_path = '',
                 reindex = False,)
@@ -77,7 +77,8 @@ def run():
             n02= int(n02)
             print(f"query count: {n02}")
 
-            result = searcher.rank_images_by_query_sqlite_image(imageWeight,prompt, prompt_img, n01, n02)
+            # result = searcher.rank_images_by_query_sqlite_image(imageWeight,prompt, prompt_img, n01, n02)
+            result = searcher.rank_images_by_query_image(imageWeight,prompt, prompt_img, n01, n02)
             
             response_data = {
                 'prompt': prompt,
@@ -97,8 +98,4 @@ def run():
 
 if __name__ == "__main__":
     run()
-
-
-
-
 

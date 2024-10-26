@@ -35,7 +35,7 @@ def log_request(response):
                     f'{response.status_code} {response.content_length} 请求耗时 {elapsed_time:.6f} s')
     return response
 
-db_path = r'd:\Ai-clip-seacher\sqlite\stored_paths.db'
+db_path = r'Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus_thumbnail_200px\stored_paths.db'
 db = sqlite3.connect(db_path)
 table_name_data_normal = 'data_normal'
 count = db.execute(f'SELECT COUNT(PATH) FROM {table_name_data_normal} WHERE path IS NOT NULL').fetchone()[0]

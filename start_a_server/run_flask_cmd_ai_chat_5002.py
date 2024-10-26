@@ -12,7 +12,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
     handlers=[
-        logging.FileHandler('run_flask_cmd_ai_image_descri_5003.log'),  # 日志文件名
+        logging.FileHandler('run_flask_cmd_ai_chat_5002.log'),  # 日志文件名
         logging.StreamHandler()  # 控制台输出
     ]
 )
