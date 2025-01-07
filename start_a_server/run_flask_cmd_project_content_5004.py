@@ -35,20 +35,28 @@ def log_request(response):
                     f'{response.status_code} {response.content_length} 请求耗时 {elapsed_time:.6f} s')
     return response
 
-db_path = r'Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus_thumbnail_200px\stored_paths.db'
+db_path = 'Y:/GOA-AIGC/98-goaTrainingData/Arch_200px_/stored_paths.db'
+# db_path = r'Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus\stored_paths.db'
 db = sqlite3.connect(db_path)
 table_name_data_normal = 'data_normal'
-count = db.execute(f'SELECT COUNT(PATH) FROM {table_name_data_normal} WHERE path IS NOT NULL').fetchone()[0]
+# count = db.execute(f'SELECT COUNT(PATH) FROM {table_name_data_normal} WHERE path IS NOT NULL').fetchone()[0]
 
 def get_project_content(project_path):
     '''获取一个项目的所有相关信息'''
 
+    # rows = db.execute(f'''
+    #     SELECT PATH, thumbnail_width, thumbnail_height
+    #     FROM {table_name_data_normal} 
+    #     WHERE  PATH LIKE '%{project_path}%'
+    #     ''').fetchall()
+
     rows = db.execute(f'''
-        SELECT * 
+        SELECT PATH, thumbnail_width, thumbnail_height
         FROM {table_name_data_normal} 
-        WHERE PATH LIKE '%{project_path}%'
-        ''').fetchall()  
-    filtered_list = [tup[1] for tup in rows]  
+        WHERE  PATH LIKE '{project_path}%'
+        ''').fetchall()
+    # filtered_list = [tup[1] for tup in rows]  
+    filtered_list = rows
 
     return filtered_list
 
@@ -58,8 +66,25 @@ def run():
     @app.route('/project_content',methods=['GET'])
     def project_content():
         project_path = request.args.get("project_path") 
-        result = get_project_content(project_path)
-        return jsonify(results=result)
+        if project_path is None:
+            return jsonify(results=[])
+        
+        # 效果图不对数据库进行项目查询
+        rendering_prefix = ('DSWH','FanTuo','inplacevisual','淘宝效果图资源',)
+        if project_path.startswith(rendering_prefix):
+            response_data = {
+                'project_path': '效果图：'+project_path,
+                'results': []
+            }                            
+            return jsonify(response_data)
+
+        results = get_project_content(project_path)
+
+        response_data = {
+            'project_path': project_path,
+            'results': results
+        }                            
+        return jsonify(response_data)
 
     server = pywsgi.WSGIServer(('0.0.0.0', 5004), app)
     print("Searcher Serving on port 10.1.12.30:5004 ...")

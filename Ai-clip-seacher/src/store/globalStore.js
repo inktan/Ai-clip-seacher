@@ -1,13 +1,30 @@
-import {defineStore} from "pinia";
-export const useGlobalStore = defineStore ('globalStore',{
-    state: ()=>({
+import { defineStore } from "pinia";
+export const useGlobalStore = defineStore('globalStore', {
+    state: () => ({
         loading: false,
         // random_images:[],
-        images:[], // 首页瀑布流显示的图片
+        images: [], // 首页瀑布流显示的图片
+        // projectImages: [], // 首页瀑布流显示的图片
+
+        rendering: true,
+        realScene: true,
+        imageUrl:'',
+
         data: [],
-        fecthMore: false,
+        fecth_random: true,
+        fecth_ai: true,
+        fecthMore_random: true,
+        fecthMore_ai: true,
+        // formData_ai: new FormData(),
+        searchCount: 0,// 请求次数
+        randomCount: 0,// 请求次数
+
+        projectName: '', // 项目详情的名字请求次数
+        projectPath: '', // 项目详情的路径请求次数
+        newUrl_1k: '',// 项目详情的查看图片
+
     }),
-      
+
     actions: {
         // 定义动作
         // increment(context) {

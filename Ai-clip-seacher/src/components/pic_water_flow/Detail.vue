@@ -1,35 +1,22 @@
 <script setup>
-import { ref, onBeforeMount, onMounted, onUpdated, computed, defineComponent, watch, onUnmounted } from 'vue';
+import { ref, onBeforeMount, onMounted, onUpdated, computed, defineProps, watch, onUnmounted } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
 import PicWaterFlow from '@/components/pic_water_flow/PicWaterFlow.vue'
+import { useGlobalStore } from '@/store/globalStore'
+const globalStore = useGlobalStore()
 
 const props = defineProps({
-    loading: {
-        type: Boolean,
-        required: true
-    },
-    images: {
+    imageInfos: {
         type: Array,
-        required: true,
         default: () => [],
-    },
-})
-
+        required: true // 根据你的需求决定是否必填
+    }
+});
 </script>
 <template>
     <div class="detail-container">
-        <PicWaterFlow :images=images />
-        <div class="loading" v-loading="loading" v-if="loading"  element-loading-text="AI搜索中..."></div>
+        <PicWaterFlow :imageInfos="imageInfos"/>
+        <div class=" " style="height: 100px;" v-loading="globalStore.loading" v-if="globalStore.loading"
+            element-loading-text="AI搜索中..."></div>
     </div>
 </template>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="less">
-@import "@/styles/var.less";
-
-.detail-container {
-    .loading {
-        height: 100px;
-    }
-}
-</style>

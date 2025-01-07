@@ -1,8 +1,14 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory,createWebHashHistory } from 'vue-router'
 import InspirationView from '@/views/InspirationView.vue'
 import ProInfoView from '@/views/ProInfoView.vue'
+
+import Search from '@/views/Search.vue'
+import SearchByPic from '@/views/SearchByPic.vue'
+
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  // history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(),
+
   routes: [
     {
       path: '/',
@@ -13,6 +19,16 @@ const router = createRouter({
       path: '/proInfoView',
       name: 'proInfoView',
       component: ProInfoView
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: Search
+    },
+    {
+      path: '/searchByPic',
+      name: 'searchByPic',
+      component: SearchByPic
     },
     {
       // path: '/about',

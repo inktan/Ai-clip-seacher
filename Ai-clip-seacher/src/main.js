@@ -39,6 +39,11 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }
 
+import {createBootstrap} from 'bootstrap-vue-next'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
+app.use(createBootstrap())
+
 // app.provide('$showMessage', showMessage);
 app.mount('#app');
 

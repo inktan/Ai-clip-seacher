@@ -2,13 +2,14 @@ import torch
 from tqdm import tqdm
 import sqlite3
 from decorator import timer_decorator
+import torch.nn.functional as F
 
 from image_searcher.interfaces.image_loader import ImageLoader
 from image_searcher.interfaces.result_interface import RankedImage
 from image_searcher.interfaces.stored_embeddings import StoredEmbeddings
 from image_searcher.embedders.clip_embedder import ClipEmbedder
 
-# from pymilvus import MilvusClient, Collection, DataType
+from pymilvus import MilvusClient, Collection, DataType
 from tqdm import tqdm
 
 # image_dir_path='Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus\archcollege'
@@ -46,7 +47,8 @@ class Search:
         self.stored_embeddings = StoredEmbeddings(save_path=save_path if save_path else image_dir_path)
         print(f"{len(self.stored_embeddings.get_image_paths())} files are indexed.")
 
-        self.image_path_prefix = r"Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus\\"
+        self.image_path_prefix = "Y:/GOA-AIGC/98-goaTrainingData/ArchOctopus/"
+        self.image_path_prefix ='Y:/GOA-AIGC/98-goaTrainingData/ArchOctopus\\'
         # self.image_path_prefix = r"D:\Ai-clip-seacher\AiArchLib1k"
         # self.image_path_prefix = ""
         print("Waiting for server to start ...")
@@ -57,44 +59,35 @@ class Search:
             self.stored_embeddings.set_embedding_tensor()
         
         # sqlite3
-        # db_path = r'd:\Ai-clip-seacher\sqlite\stored_embeddings_202408141501.db'
-        # self.db = sqlite3.connect(db_path)
-        # self.db.enable_load_extension(True)
-        # sqlite_vec.load(self.db)
-        # self.db.enable_load_extension(False)
-
-        # sqlite_version, vec_version = self.db.execute(
-        #     "select sqlite_version(), vec_version()"
-        # ).fetchone()
-
-        # print(f"sqlite_version={sqlite_version}, vec_version={vec_version}")
-
-        # sqlite3
-        # self.db = sqlite3.connect(db_path)
+                
+        self.db_path = 'Y:/GOA-AIGC/98-goaTrainingData/Arch_200px_/stored_paths.db'
+        self.db = sqlite3.connect(self.db_path)
+        self.table_name_data_normal = 'data_normal'
 
         # self.table_name_data_normal = 'data_normal'
         # self.count = self.db.execute(f'SELECT COUNT(PATH) FROM {self.table_name_data_normal} WHERE path IS NOT NULL').fetchone()[0]
 
-        # self.client = MilvusClient(
-        #     uri="http://localhost:19530",
-        #     db_name="default"
-        # )
+        self.client = MilvusClient(
+            uri="http://localhost:19530",
+            db_name="default"
+        )
 
-        # print('client.list_collections',self.client.list_collections())
+        print('client.list_collections',self.client.list_collections())
 
-        # vec_table_COSINE
-        # vec_table_IP
-        # vec_table
+        # self.vec_type = 'L2'
+        # self.vec_type = 'IP'
+        self.vec_type = 'COSINE'
+        
+        self.table_name_vec = f'vec_table_{self.vec_type}'
 
-        # self.table_name_vec = 'vec_table_COSINE'
-        # self.client.release_collection(collection_name="vec_table_IP")
-        # self.client.load_collection(collection_name=self.table_name_vec)
+        self.client.release_collection(collection_name="vec_table_IP")
+        self.client.load_collection(collection_name=self.table_name_vec)
         
         print("Setup over, Searcher is ready to be queried")
 
     def reindex(self):
-        image_paths_stored = [self.image_path_prefix + i for i in self.stored_embeddings.get_image_paths()]
-        waiting_list = set(self.loader.search_tree()) - set(image_paths_stored)
+        waiting_list = set([image_path.replace(self.image_path_prefix, "") for image_path in self.loader.search_tree()]) - set(self.stored_embeddings.get_image_paths())
+
         if not waiting_list:
             return
         
@@ -107,8 +100,8 @@ class Search:
 
     def index_image(self, image_path):
         try:
-            images = [self.loader.open_image(image_path)]
-            image_path = image_path.replace(self.image_path_prefix, "")
+            images = [self.loader.open_image(self.image_path_prefix +image_path)]
+            # image_path = image_path.replace(self.image_path_prefix, "")
             self.stored_embeddings.add_embedding(image_path, self.embedder.embed_images(images))
             if self.include_faces:
                 print('==')
@@ -131,6 +124,74 @@ class Search:
         ranked_images = [RankedImage(image_path=path, score=score) for path, score in best_images]
         image_paths_list = [image.image_path for image in ranked_images]
         return image_paths_list
+    
+    @timer_decorator
+    def rank_images_by_query_image(self, imageWeight,query: str, qury_image, rendering_img,realScene_img,n01,n02):
+        '''基于图片和提示词进行搜索'''
+        image_embeds, image_paths = self.stored_embeddings.get_embedding_tensor()
+
+        if imageWeight==1.0:
+            query_embed = self.embedder.embed_images(qury_image)
+        elif imageWeight==0:
+            query_embed = self.embedder.embed_text(query)
+        elif imageWeight!=0:
+            query_embed = self.embedder.embed_text(query)
+            iamge_embeds = self.embedder.embed_images(qury_image)
+            query_embed = imageWeight * iamge_embeds + (1-imageWeight) * query_embed
+
+        # scores = (torch.matmul(query_embed, image_embeds.t()) * 100).softmax(dim=1).squeeze().numpy().astype(float)
+        # best_images = sorted(list(zip(image_paths, scores)), key=lambda x: x[1], reverse=True)
+        # ranked_images = [RankedImage(image_path=path, score=score) for path, score in best_images]
+        # image_paths_list = [image.image_path for image in ranked_images]
+        # image_paths_list = [path  for path, score in best_images]
+        
+        # 使用点积计算两个向量的相似度
+        scores = (torch.matmul(query_embed, image_embeds.t()) * 100).softmax(dim=1).squeeze()
+        sorted_indices = torch.argsort(scores, descending=True).numpy()
+
+        # 计算两个向量之间的余弦角度，适用于衡量向量在方向上的相似度。
+        # 计算余弦相似度
+        # cosine_similarities = F.cosine_similarity(query_embed, image_embeds, dim=1)
+        # 排序相似度，得到降序排列的索引
+        # sorted_indices = torch.argsort(cosine_similarities, descending=True).numpy()
+
+        # 使用splite目的：从数据库调取缩略图的高度与宽度
+        ids_str = ','.join(map(str, sorted_indices[0:50000]))  
+        rows = self.db.execute(f'''
+            SELECT PATH, thumbnail_width, thumbnail_height  
+            FROM {self.table_name_data_normal} 
+            WHERE ID IN ({ids_str})
+            ''').fetchall()  
+
+        if rendering_img and not realScene_img:
+            rendering_prefix = [
+                                'DSWH','FanTuo','inplacevisual',
+                                '淘宝效果图资源',
+                                ]
+            rendering_prefix_set = set(rendering_prefix)
+            filtered_paths  = (
+                path for path in rows
+                if any(path[0].startswith(prefix) for prefix in rendering_prefix_set)
+            )
+            return list(filtered_paths )[n01:n02]
+        
+        elif not rendering_img and realScene_img:
+            realScene_prefix = [
+                                'archcollege',
+                                'ArchDaily','archdaily_cn-20241012','archdaily_com-20241012','ArchDaily01',
+                                'archiposition','archiposition-20241012','Architizer',
+                                'gooood','gooood-20241012',  'thad',
+                                'pinsupinsheji',
+                                'behance',
+                                ]
+            realScene_prefix_set = set(realScene_prefix)
+            filtered_paths  = (
+                path for path in rows
+                if any(path[0].startswith(prefix) for prefix in realScene_prefix_set)
+            )
+            return list(filtered_paths )[n01:n02]
+        else:
+            return rows[n01:n02]
     
     @timer_decorator
     def rank_images_by_query_sqlite_image(self, imageWeight,query: str, qury_image, n01,n02):
@@ -165,7 +226,7 @@ class Search:
         search_params = {
             # "metric_type": "L2", # L2 (欧几里得距离) 指两个向量在欧几里得空间中的直线距离。
             # "metric_type": "IP", # IP (内积，也称为点积) IP度量是指两个向量的内积，它衡量了两个向量在方向上的相似度。
-            "metric_type": "COSINE", # COSINE (余弦相似度) COSINE度量衡量的是两个向量方向上的相似度，而不是它们的欧几里得距离或大小。
+            "metric_type": self.vec_type, # COSINE (余弦相似度) COSINE度量衡量的是两个向量方向上的相似度，而不是它们的欧几里得距离或大小。
             "params": {},
         }
         res = self.client.search(
@@ -176,6 +237,7 @@ class Search:
             output_fields=['my_id']
         )
         ids = [dict_['id'] for dict_ in res[0]]
+        
         ids_str = ','.join(map(str, ids))  
         rows = self.db.execute(f'''
             SELECT * 

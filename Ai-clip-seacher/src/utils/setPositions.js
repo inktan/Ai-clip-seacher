@@ -46,6 +46,8 @@
  * @param {*} id 图片瀑布流所在div容器
  */
 export default function (width, gapWidth, id) {
+    // return
+
     let divContainer = document.getElementById(id);
     var parentRect = divContainer.getBoundingClientRect();
     var containerWidth = divContainer.offsetWidth;
@@ -66,6 +68,10 @@ export default function (width, gapWidth, id) {
         imgDiv.style.top = minTop + 'px';
         imgDiv.style.left = left + 'px';
         imgDiv.style.position = 'absolute';
+        // imgDiv.style.height = 'auto';
     }
     divContainer.style.height = Math.max(...arr) + 'px';
 }
+
+
+

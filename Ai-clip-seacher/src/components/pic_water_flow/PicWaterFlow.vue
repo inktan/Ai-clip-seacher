@@ -1,50 +1,145 @@
 <script setup>
-import { ref, onBeforeMount, onMounted, onUpdated, computed, defineComponent, watch, onUnmounted, inject } from 'vue';
-import { RouterLink, RouterView } from 'vue-router'
-import setPostions from '@/utils/setPositions';
+import { ref, onBeforeMount, onMounted, onUpdated, computed, defineProps, watch, onUnmounted, watchEffect } from 'vue';
+// import setPostions from '@/utils/setPositions';
 import debounce from '@/utils/debounce';
-import { Picture as IconPicture } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router';
 const router = useRouter();
 
-import {useGlobalStore} from '@/store/globalStore'
+import { useGlobalStore } from '@/store/globalStore'
 const globalStore = useGlobalStore()
 
 const props = defineProps({
-    images: {
+    imageInfos: {
         type: Array,
-        required: true,
         default: () => [],
-    },
-})
+        required: true // 根据你的需求决定是否必填
+    }
+});
+
+const PicWaterfallFlowDiv = ref(null);
 
 const deSetPositions = debounce(() => {
-    setPostions(200, 20, 'PicWaterfallFlow');
+    const colWidth = 200
+    const gapWidth = 20
+
+    if (PicWaterfallFlowDiv.value) {
+        const containerRect = PicWaterfallFlowDiv.value.getBoundingClientRect()
+        // console.log(containerRect)
+
+        // const style = window.getComputedStyle(PicWaterfallFlowDiv.value);
+        const flowWidth = parseInt(containerRect.width);
+        // const flowHeight = parseInt(style.height);
+        // console.log(`宽度: ${flowWidth}, 高度:${flowHeight}`);
+
+        var colsTmp = flowWidth / (colWidth + gapWidth);
+        var cols = Math.floor(flowWidth / (colWidth + gapWidth));
+        if ((colsTmp - cols) < 0.3) {
+            cols -= 1
+        }
+        // console.log(flowWidth / (colWidth + gapWidth))
+        // console.log(Math.floor(flowWidth / (colWidth + gapWidth)))
+        var leftSpace = (flowWidth - cols * (colWidth + gapWidth)) * 0.5;
+        var arr = new Array(cols);
+        arr.fill(0);
+
+        for (var i = 0; i < props.imageInfos.length; i++) {
+            var image = props.imageInfos[i];
+            var minTop = Math.min(...arr);
+            var index = arr.indexOf(minTop);
+            arr[index] += image.height + gapWidth;
+            var left = leftSpace + index * (gapWidth + colWidth);
+
+            image.translateX = left;
+            image.translateY = minTop;
+
+            // 窗口顶部位置  图片底部y值与窗口上边界的距离
+            const topBool = minTop + containerRect.top + image.height + gapWidth > 100
+            // 窗口底部位置  图片顶部y值与窗口下边界的距离
+            const bottomBool = minTop + containerRect.top < window.innerHeight + 10
+
+            if (topBool && bottomBool) {
+                image.isVisible = true;
+            }
+            else {
+                image.isVisible = false;
+            }
+        }
+
+        contentHeight.value = Math.max(...arr);
+        filteredItems.value = props.imageInfos.filter(item => item.isVisible);
+
+        // imageElements.value.forEach((el) => {
+        //     if (el) {
+        //         observer.observe(el);
+        //     }
+        // });
+    }
 }, 300);
+
+const isBoxVisible = (boxRect, containerRect) => {
+    return (
+        boxRect.top < containerRect.bottom &&
+        boxRect.bottom > containerRect.top &&
+        boxRect.left < containerRect.right &&
+        boxRect.right > containerRect.left
+    );
+};
+
+const filteredItems = ref([])
+
+const imageElements = ref([]);
+
+// 使用IntersectionObserver来观察每个img元素。当图片进入或离开可视范围时，isVisible状态会相应地更新。
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        const index = imageElements.value.indexOf(entry.target);
+        // console.log(index)
+        if (entry.isIntersecting) {
+            props.imageInfos[index].isVisible = true;
+            // 可以选择停止观察，如果不再需要
+            // observer.unobserve(entry.target);
+        } else {
+            props.imageInfos[index].isVisible = false;
+        }
+    });
+}, {
+    rootMargin: '0px',
+    threshold: 0.1 // 触发回调的交并比阈值
+});
+
+// 初始高度
+const contentHeight = ref(0);
+watchEffect(() => {
+    if (globalStore.getCount || props.imageInfos) {
+        // console.log('watchEffect')
+        deSetPositions();
+    }
+});
 
 onMounted(() => {
     window.addEventListener('resize', deSetPositions);
-    // 初始化 linkVisibility 对象，假设 images 的长度为 images.length
-    // props.images.forEach((_, index) => {
-    //     linkVisibility.value[index] = true;
-    // });
+    window.addEventListener('scroll', deSetPositions);
+
 })
 
 onUnmounted(() => {
     window.removeEventListener('resize', deSetPositions);
+    window.removeEventListener('scroll', deSetPositions);
+
+    observer.disconnect();
 })
 
-function handleLoad(index) {
-    setPostions(200, 20, 'PicWaterfallFlow');
+function handleImageLoad(index) {
+    filteredItems.value[index].loaded = true;
 }
 
-// const handleImageError = (index) => {
-// 当图片加载失败时，设置对应索引的 linkVisibility 为 false
-// linkVisibility.value[index] = false;
-// setPostions(200, 20, 'PicWaterfallFlow');
-// };
+const handleImageError = (index) => {
+    // filteredItems.value[index].loaded = false;
+    // filteredItems.value[index].isVisible = false;
+    // deSetPositions();
+};
+
 const activeIndex = ref(0); // 用于跟踪当前鼠标悬停的链接索引
-// const linkVisibility = ref({}); // 控制每个链接是否显示的对象
 
 function handleMouseOver(index) {
     activeIndex.value = index;
@@ -53,84 +148,86 @@ function handleMouseLeave(index) {
     activeIndex.value = null;
 }
 
-// 项目详情
-// const SearchProInfo = inject('SearchProInfo');
+const loading = ref(true)
 function handleClick(url) {
-
-    const startIndex = url.lastIndexOf("/") + 1; // 找到最后一个'/'字符的索引，并加1以指向下一个字符
-    const endIndex = url.lastIndexOf("\\"); // 找到最后一个'\'字符的索引
     const parts = url.split('\\');
-    const projectName = parts[1];
 
-    const projectPath = url.substring(startIndex, endIndex);
-    const newUrl_1k = url.replace("static_200", "static_1");
+    const projectPath = parts.slice(2, -1).join('\\');
+    const imgName = parts[parts.length - 1];
 
-    // console.log(url)
-    globalStore.fecthMore = false
+    // 项目详情页面，移除Fetchmore
+    globalStore.fecth_random = false;
+    globalStore.fecth_ai = false;
+    globalStore.fecthMore_random = false
+    globalStore.fecthMore_ai = false
+
     router.push({
         path: '/proInfoView',
         query: {
-            projectName,
-            projectPath,
-            newUrl_1k,
+            projectPath: projectPath,
+            imgName: imgName,
         }
     });
 }
+// 计算瀑布的高度尺寸
+// 绑定v-if位于窗口内的为true
 
 </script>
 <template>
-    <div class="PicWaterfallFlow-container">
-        <!-- <el-button @click="handleClick"></el-button> -->
-        <div class="PicWaterfallFlow" id="PicWaterfallFlow" v-if="images.length > 0">
-            <div v-for="(url, index)  in images" :key="url">
-                <el-link href="" target="" @mouseover="handleMouseOver(index)" @mouseleave="handleMouseLeave(index)"
-                    :class="{ 'with-overlay': activeIndex === index }" :underline="false" @click="handleClick(url)">
-                    <el-image :src="url" @load="handleLoad(index)" lazy />
-                    <div class="overlay" v-if="activeIndex === index">
+    <!-- id="PicWaterfallFlow" 函数监控的布局瀑布流盒子 -->
+    <div ref="PicWaterfallFlowDiv" class="PicWaterfallFlow position-relative" id="PicWaterfallFlow"
+        :style="{ height: contentHeight + 'px' }">
+        <div class="flow-item position-absolute top-0 start-0" v-for="(item, index) in filteredItems" :key="item.imgUrl"
+            :ref="el => { imageElements[index] = el }" :style="{
+                transform: 'translateX(' + item.translateX + 'px) translateY(' + item.translateY + 'px)',
+                width: item.width + 'px',
+                height: item.height + 'px'
+            }">
+            <a class="rounded-4 overflow-hidden d-block w-100 h-100" @mouseover="handleMouseOver(index)"
+                style="cursor: pointer;" @mouseleave="handleMouseLeave(index)"
+                :class="{ 'with-overlay': activeIndex === index }" :underline="false" @click="handleClick(item.imgUrl)">
+                <div class="w-100 h-100">
+                    <img class=" w-100 h-100" :src="item.imgUrl" @load="handleImageLoad(index)"
+                        @error="handleImageError(index)" />
+                    <div class="overlay w-100 h-100 position-absolute top-0 start-0 bottom-0 end-0 d-flex align-items-center justify-content-center"
+                        v-if="item.loaded">
                         项目详情
                     </div>
-                </el-link>
-                <!-- <div class="describle">特征</div> -->
-            </div>
-
-            <!-- <img v-for="(url, index)  in images" :key="url" :src="url" @load="handleLoad(index)"
-                @error="handleError">
-            </img> -->
-
+                    <!-- 占位符 -->
+                    <div v-if="!item.loaded" class="position-absolute top-0 start-0 w-100 h-100 bg-white z-n1">
+                        <div class="p-2 placeholder-glow h-100" style="cursor: wait;">
+                            <span class="m-2 d-block placeholder col-7"></span>
+                            <span class="m-2 d-block placeholder col-4"></span>
+                            <span class="m-2 d-block placeholder col-4"></span>
+                            <span class="m-2 d-block placeholder col-6"></span>
+                            <span class="m-2 d-block placeholder col-8"></span>
+                        </div>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 </template>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="less">
+<style lang="less">
 @import "@/styles/var.less";
 
-.PicWaterfallFlow-container {
-    .PicWaterfallFlow {
-        position: relative;
-        overflow: hidden;
+.PicWaterfallFlow {
 
-        // height: 400px;
-        // background-color: rgb(216, 255, 242);
-        .el-link {
-            display: block;
+    .flow-item {
+        a {
+            box-shadow: 5px 5px 10px 0 rgba(0, 0, 0, 0.5);
+        }
 
-            .el-image {
-                width: 200px;
-                height: auto;
-                // position: absolute;
+        transition: transform .2s;
 
-                box-shadow: 5px 5px 10px 0 rgba(0, 0, 0, 0.5);
-                border-radius: 5%;
-                // margin: 5px;
-                transition: all 0.35s ease;
+        img {
+            transition: all 0.35s ease;
+        }
 
-                .placeholder_image-slot {
-                    width: 200px;
-                    height: 500px;
-                    background-color: white;
-                }
-            }
+        .placeholder {
+            box-shadow: 5px 5px 10px 0 rgba(0, 0, 0, 0.5);
         }
 
         .describle {
@@ -140,24 +237,14 @@ function handleClick(url) {
         }
 
         .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
             background-color: rgba(0, 0, 0, 0.5);
-            /* 灰色透明蒙版 */
             color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             opacity: 0;
             transition: opacity 0.3s;
         }
 
         .with-overlay .overlay {
             opacity: 1;
-            border-radius: 5%;
         }
 
     }

@@ -1,6 +1,7 @@
 # pylint:disable=no-member
 import pickle
 import os
+from tqdm import tqdm
 
 import torch
 
@@ -11,9 +12,16 @@ class StoredEmbeddings:
             self.save_path = os.path.join(save_path, "stored_embeddings.pickle")
 
         self.embeddings = {}
+        self.image_path_prefix = "Y:/GOA-AIGC/98-goaTrainingData/ArchOctopus/"
         if os.path.isfile(self.save_path):
             with open(self.save_path, "rb") as file:
                 self.embeddings = pickle.load(file)
+                # 现在遍历 embeddings 的所有键
+                # for image_path in tqdm(list(self.embeddings.keys())):
+                    # 检查文件是否存在  
+                    # if not os.path.exists(self.image_path_prefix + image_path):
+                        # 如果文件不存在，则删除对应的键值对  
+                        # del self.embeddings[image_path]
 
         self.embedding_paths = []
         self.embedding_tensor = []
@@ -52,3 +60,4 @@ class StoredEmbeddings:
         """This method should be called when reindex is done"""
         with open(self.save_path, "wb") as file:
             pickle.dump(self.embeddings, file)
+

@@ -14,13 +14,8 @@ const router = useRouter();
 const prefix_200 = 'http://10.1.12.30:5173\\static_200\\';
 const prefix_1k = 'http://10.1.12.30:5173\\static_1\\'
 
-const randomImages = ref([])
-
 onBeforeMount(async () => {
-    // 1 首页路由 /
-    if (route.path == "/") {
-        fetchRandomData()
-    }
+    search()
 })
 
 onMounted(() => {
@@ -37,26 +32,37 @@ const handleScroll = (event) => {
     // 条件1 窗口移动到底部
     // 条件2 灵感 / AI搜索
     if (window.scrollY + window.innerHeight >= document.body.scrollHeight) {
-        // 1 首页路由 /
-        if (route.path == "/") {
-            fetchMore_random();
-        }
+        searchFetchMore();
     }
 };
 
-// 首页路由为随机页面
-const fetchRandomData = async function () {
-    randomImages.value = []
+const hasMore = computed(() => {
+    return globalStore.images.length < 2000;
+})
 
-    // if (!globalStore.fecth_random)
-    //     return
+// 基于文字+图进行AI搜图
+async function search() {
+    // 如何不存在查询数据，则返回灵感界面
+    if (!globalStore.formData_ai) {
+        router.push('/');
+        globalStore.imageUrl = ''
+    }
+    // console.log(globalStore.formData_ai);
 
+    // for (const pair of globalStore.formData_ai.entries()) {
+    //     console.log(`${pair[0]}:${pair[1]}`);
+    // }
+
+    const now = new Date();
+    console.log(now.toString());
+
+    globalStore.images = []
     globalStore.loading = true;
     window.start();
-    const data = await getRandomImages(250);
-    // randomImages = data.results.map(item => prefix + item);
+    // window.done();
 
-    randomImages.value = data.results.map(item => ({
+    const data = await postBestImagesPrompt(globalStore.formData_ai);
+    globalStore.images = data.results.map(item => ({
         imgUrl: prefix_200 + item[0],
         alt: `Description for ${item[0]}`, // 假设这是图片的替代文本
         isVisible: false,
@@ -67,23 +73,33 @@ const fetchRandomData = async function () {
         translateY: -3000,
         // ... 添加更多属性
     }));
-    // await delay(3000);
 
-    globalStore.loading = false;
+    await delay(3000);
     window.done();
+    globalStore.loading = false;
 }
-async function fetchMore_random() {
-    // return
+async function searchFetchMore() {
 
     if (!hasMore.value)
         return
     if (globalStore.loading)
         return
+    await delay(3000);
 
     globalStore.loading = true;
     window.start();
-    const data = await getRandomImages(250);
-    randomImages.value = randomImages.value.concat(data.results.map(item => ({
+    // 获取当前 n01 和 n02 的值
+    let n01 = parseInt(globalStore.formData_ai.get('n01'), 10);
+    let n02 = parseInt(globalStore.formData_ai.get('n02'), 10);
+
+    // 自增500
+    n01 += 250;
+    n02 += 250;
+    // 更新 formData 对象中的值
+    globalStore.formData_ai.set('n01', n01);
+    globalStore.formData_ai.set('n02', n02);
+    const data = await postBestImagesPrompt(globalStore.formData_ai);
+    globalStore.images = globalStore.images.concat(data.results.map(item => ({
         imgUrl: prefix_200 + item[0],
         alt: `Description for ${item[0]}`, // 假设这是图片的替代文本
         isVisible: false,
@@ -94,18 +110,14 @@ async function fetchMore_random() {
         translateY: -3000,
         // ... 添加更多属性
     })));
-    // await delay(3000);
+    await delay(3000);
     window.done();
     globalStore.loading = false;
 }
 
-const hasMore = computed(() => {
-    return randomImages.value.length < 2000;
-})
-
 </script>
 <template>
-    <Detail :imageInfos="randomImages" />
+    <Detail :imageInfos="globalStore.images" />
 </template>
 
 <style scoped lang="less">

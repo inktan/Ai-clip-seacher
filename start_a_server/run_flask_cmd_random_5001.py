@@ -37,31 +37,82 @@ def log_request(response):
                     f'{response.status_code} {response.content_length} 请求耗时 {elapsed_time:.6f} s')
     return response
 
-db_path = r'Y:\GOA-AIGC\98-goaTrainingData\ArchOctopus_thumbnail_200px\stored_paths.db'
-db = sqlite3.connect(db_path)
-table_name_data_normal = 'data_normal'
-count = db.execute(f'SELECT COUNT(PATH) FROM {table_name_data_normal} WHERE path IS NOT NULL').fetchone()[0]
+# db_path = 'Y:/GOA-AIGC/98-goaTrainingData/Arch_200px_/stored_paths.db'
+# db = sqlite3.connect(db_path)
+# table_name_data_normal = 'data_normal'
+# count = db.execute(f'SELECT COUNT(PATH) FROM {table_name_data_normal} WHERE path IS NOT NULL').fetchone()[0]
+
+import mysql.connector
+
+# 数据库连接参数
+config = {
+    'user': 'root',  # 替换为你的MySQL用户名
+    'password': 'mysql123',  # 替换为你的MySQL密码
+    'host': '127.0.0.1',  # 或者你的MySQL服务器地址
+    'port': '3306',  # 默认MySQL端口是3306
+
+    'database': 'ai_data',
+    'raise_on_warnings': True
+}
+
+# 建立连接
+connection = mysql.connector.connect(**config)
+cursor = connection.cursor()
+# SQL查询语句
+query = "SELECT COUNT(*) FROM thumbnails;"
+# 执行查询
+cursor.execute(query)
+# 获取查询结果
+count = cursor.fetchone()[0]
+print(f"Table 'thumbnails' has {count} rows.")
 
 def random_images(n: int = 300):
     '''随机选择300个图片'''
     if count < 300:
-        image_paths = db.execute(f"SELECT PATH FROM {table_name_data_normal})").fetchall()  
-        return [tup[1] for tup in image_paths]  
+        # SQL查询语句
+        query = "SELECT PATH, thumbnail_width, thumbnail_height FROM thumbnails"
+        # 执行查询
+        cursor.execute(query)
+        # 获取所有结果
+        results = cursor.fetchall()
+        return results
+
+        # image_paths = cursor.execute(f"SELECT  PATH, thumbnail_width, thumbnail_height  FROM {table_name_data_normal}").fetchall()  
+        # return image_paths
     else:
         # 生成300个随机整数索引
         random_indices = random.sample(range(count), n)
+        ids_str = ','.join(map(str, random_indices))  
+
+        # SQL查询语句，随机取出300行数据
+        # query = f"""
+        # SELECT PATH, thumbnail_width, thumbnail_height
+        # FROM thumbnails
+        # ORDER BY RAND()
+        # LIMIT {n}
+        # """
+        query = f"""
+        SELECT PATH, thumbnail_width, thumbnail_height
+        FROM thumbnails
+        WHERE id IN ({ids_str})
+        """
+        # 执行查询
+        cursor.execute(query)
+        # 获取所有结果
+        results = cursor.fetchall()
+        return results
+
         # 使用这些索引从image_paths中提取一个新的列表
         # random_image_paths = [image_paths[i] for i in random_indices]
         # 从列表中随机选择300个图片路径
 
-        ids_str = ','.join(map(str, random_indices))  
-        rows = db.execute(f'''
-            SELECT * 
-            FROM {table_name_data_normal} 
-            WHERE ID IN ({ids_str})
-            ''').fetchall()  
-        random_image_paths = [tup[1] for tup in rows]  
-        return random_image_paths
+        # rows = db.execute(f'''
+        #     SELECT PATH, thumbnail_width, thumbnail_height  
+        #     FROM {table_name_data_normal} 
+        #     WHERE ID IN ({ids_str})
+        #     ''').fetchall()  
+        # random_image_paths = rows
+        # return random_image_paths
 def run():
     @app.route('/random_image',methods=['GET'])
     def random_image():
@@ -72,6 +123,7 @@ def run():
             return "query_count must be an integer", 400
         print(query_count)
         result = random_images(n=query_count)
+        # print(result)
         return jsonify(results=result)
 
     server = pywsgi.WSGIServer(('0.0.0.0', 5001), app)

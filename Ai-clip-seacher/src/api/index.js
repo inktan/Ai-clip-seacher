@@ -11,7 +11,7 @@ export async function getRandomImages(query_count) {
     });
 }
 
-// 语义搜索图片
+// 语义+图 搜索图片
 export async function postBestImagesPrompt(query) {
     // console.log(query)
     const url = 'http://10.1.12.30:5005/get_best_images_prompt'
@@ -19,9 +19,18 @@ export async function postBestImagesPrompt(query) {
     return await request.post(url, query);
 }
 
+// 图 搜索图片
+export async function searchByPicUrl(query) {
+    // console.log(query)
+    const url = 'http://10.1.12.30:5005/search_by_picUrl'
+    // console.log(data01)
+    return await request.post(url, query);
+}
+
 // 项目详情
 export async function getProjectContent(projectPath) {
     const url = 'http://10.1.12.30:5004/project_content'
+    console.log(projectPath)
     return await request.get(url, {
         // get请求参数
         params: {

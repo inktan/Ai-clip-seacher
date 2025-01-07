@@ -1,12 +1,13 @@
-from flask import Flask, Response,request, jsonify
+from flask import Flask, Response,request, jsonify, stream_with_context
 from flask_cors import CORS
 from gevent import pywsgi  
 import logging
 import time 
 from flask import g
+import http.client
 
-import json
 import requests
+import json
 import time
 # 配置日志
 logging.basicConfig(
@@ -55,14 +56,14 @@ def run():
     def ai_chat():
         messageList = request.json
         payload = json.dumps({
-        "model": "gpt-4o",
-        #    "model": "gpt-3.5-turbo",
-        "messages": messageList['messages'],
+            "model": "gpt-4o",
+            #    "model": "gpt-3.5-turbo",
+            "messages": messageList['messages'],
             # "max_tokens":300,
-            "safe_mode": False
+            "safe_mode": False,
+            # "stream": True,
         })
-
-        while True:     
+        while True:
             try:         
                 response = requests.request("POST", url, headers=headers, data=payload)
                 converted_dict = json.loads(response.text)
@@ -77,7 +78,7 @@ def run():
 
     @app.route('/ai_chat_get',methods=['GET'])
     def ai_chat_get():
-        try:         
+        try:
             return jsonify(content='text success')
             # return text
             
